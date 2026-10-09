@@ -18,7 +18,7 @@ from korfbal_stats.config import SHOT_BIN_SIZE, SHOT_COORD_SIZE
 from korfbal_stats.transform import build_all
 from korfbal_stats.validate import validate
 
-st.set_page_config(page_title="Korfbal stats", page_icon="🏐", layout="wide")
+st.set_page_config(page_title="Korfbal stats", layout="wide")
 
 PCT = st.column_config.NumberColumn(format="%.1f%%")   # 38.9%
 DEC = st.column_config.NumberColumn(format="%.2f")     # 1.25
@@ -88,7 +88,7 @@ pm = sel(model["fact_player_match"])
 pos = sel(model["fact_possession"])
 shots = sel(model["fact_shots"])
 
-st.title("🏐 Korfbal statistieken")
+st.title("Korfbal statistieken")
 st.caption(f"Seizoen {season} · {len(selected)} van {len(season_matches)} wedstrijd(en) geselecteerd")
 
 tab_ov, tab_team, tab_pl, tab_shot = st.tabs(["Overzicht", "Team", "Spelers", "Schotkaart"])
@@ -238,8 +238,9 @@ with tab_shot:
         z["pct"] = z["goals"] / z["schoten"] * 100
         piv = z.pivot(index="y_bin", columns="x_bin", values="pct")
         cnt = z.pivot(index="y_bin", columns="x_bin", values="schoten")
+        labels_txt = [["" if pd.isna(v) else str(int(v)) for v in row] for row in cnt.values]
         heat = go.Figure(go.Heatmap(z=piv.values, x=piv.columns + half, y=piv.index + half, zmin=0, zmax=100,
-                                    colorscale="RdYlGn", opacity=0.7, text=cnt.values, texttemplate="%{text}",
+                                    colorscale="RdYlGn", opacity=0.6, text=labels_txt, texttemplate="%{text}", hoverongaps=False,
                                     colorbar=dict(title="Score", ticksuffix="%")))
         heat.update_layout(title="Scoringspercentage per zone (cijfer = aantal schoten)")
         st.plotly_chart(style_court(heat), width="stretch")

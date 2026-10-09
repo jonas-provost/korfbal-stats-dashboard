@@ -25,7 +25,8 @@ PLAYERS = {
 OPPONENTS = ["Demo Noord", "Demo Oost", "Demo Zuid", "Demo West",
              "Demo Centrum", "Demo Haven", "Demo Dorp", "Demo Stad"]
 BASKET = (275.0, 225.0)
-POST = (277.0, 246.0)  # paal op de veldafbeelding
+POST = (277.0, 246.0)  # paal op de veldafbeelding (559 x 486 px)
+SX, SY = 628 / 559, 547 / 486  # de app werkt met een canvas van ca. 628 x 547 punten
 KINDS = ["veld", "vrijworp", "penalty", "doorloper"]
 KIND_P = [0.68, 0.10, 0.04, 0.18]
 BASE_P = {"vrijworp": 0.42, "penalty": 0.55, "doorloper": 0.50}
@@ -78,7 +79,7 @@ def simulate(rng: np.random.Generator, opponent: str, day: date) -> dict[str, pd
                     p = float(np.clip((0.55 - hypot(x - BASKET[0], y - BASKET[1]) / 600) * skill, 0.05, 0.75))
                     hit = bool(rng.random() < p)
                     shots.append({"Speler": shooter, "Nummer": PLAYERS[shooter][0],
-                                  "X": round(x, 6), "Y": round(y, 6), "Doelpunt": "Ja" if hit else "Nee"})
+                                  "X": round(x * SX, 6), "Y": round(y * SY, 6), "Doelpunt": "Ja" if hit else "Nee"})
                 else:
                     hit = bool(rng.random() < min(BASE_P[kind] * skill, 0.85))
                     st[shooter][{"vrijworp": "vw", "penalty": "pen", "doorloper": "dl"}[kind] + "_t"] += 1

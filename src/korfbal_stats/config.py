@@ -31,6 +31,7 @@ ACTION_GROUPS = {
 }
 
 # Afmetingen (breedte, hoogte) van het veld in de coördinaten van de app, voor de schotkaart.
-# None = gebruik de afmetingen van de afbeelding app/assets/korfbal-veld.png (559 x 486).
-# Staan de schoten verschoven op de afbeelding, pas dit dan aan naar het canvasformaat van de app.
-SHOT_COORD_SIZE = None
+# Gemeten met taps in de 4 hoeken van de app: x loopt van ca. 1 tot 627, y van ca. 1 tot 546.
+# De veldafbeelding (559 x 486 px) wordt over dit hele vlak uitgerekt.
+# None = gebruik de pixelafmetingen van de afbeelding zelf.
+SHOT_COORD_SIZE = (628, 547)
