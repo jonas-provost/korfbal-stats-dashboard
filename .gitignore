@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.streamlit/secrets.toml
+~$*
+
+# Echte wedstrijddata komt nooit in deze publieke repo.
+# Alleen de fictieve demo-bestanden in sample_data/ worden bijgehouden.
+*.xlsx
+!sample_data/*.xlsx
