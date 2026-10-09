@@ -34,6 +34,12 @@ LABEL = {"veld": "Schot (veld)", "vrijworp": "Vrijworp", "penalty": "Penalty", "
 PREFIX = {"vrijworp": "vrijworp", "penalty": "penalty", "doorloper": "doorloper"}
 
 
+def write_workbook(path: Path, sheets: dict[str, pd.DataFrame]) -> None:
+    with pd.ExcelWriter(path, engine="openpyxl") as xw:
+        for name, df in sheets.items():
+            df.to_excel(xw, sheet_name=name, index=False)
+
+
 def keep_outside_post(x: float, y: float, radius: float = 72.0) -> tuple[float, float]:
     """Schuif schoten die in de gele cirkel rond de paal vallen naar buiten (geen extra random-getallen)."""
     dx, dy = x - POST[0], y - POST[1]
@@ -170,9 +176,7 @@ def main() -> None:
         day = FIRST_MATCH + timedelta(days=7 * i)
         sheets = simulate(rng, opponent, day)
         path = OUT / f"wedstrijd-data-{day:%Y-%m-%d}.xlsx"
-        with pd.ExcelWriter(path, engine="openpyxl") as xw:
-            for name, df in sheets.items():
-                df.to_excel(xw, sheet_name=name, index=False)
+        write_workbook(path, sheets)
         info = dict(zip(sheets["MatchInfo"]["Veld"], sheets["MatchInfo"]["Waarde"]))
         print(f"{path.name}: {opponent} {info['Eindstand thuis']}-{info['Eindstand uit']}")
 

@@ -6,6 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -134,6 +135,9 @@ with tab_team:
     ]):
         col.metric(naam, pct(div(gesc, tot_n)), f"{int(gesc)}/{int(tot_n)}", delta_color="off")
 
+    st.caption("Schotpercentage = alle schoten (veld, vrijworp, penalty, doorloper). "
+               "Veldschot = alleen schoten uit het spel, zonder vrijworpen, penalty's en doorloopballen.")
+
     st.subheader("Aanvallen: wij vs tegenstander")
     rows = []
     for naam, own in [("Wij", 1), ("Tegenstander", 0)]:
@@ -230,17 +234,22 @@ with tab_shot:
         fig = px.scatter(s, x="x", y="y", color="Resultaat",
                          symbol="speler" if len(players) > 1 else None,
                          color_discrete_map={"Doelpunt": "#1b5e20", "Gemist": "#c62828"})
-        fig.update_traces(marker=dict(size=13, line=dict(width=1.5, color="white")))
+        fig.update_traces(marker=dict(size=13, line=dict(width=1.5, color="white")), cliponaxis=False)
         st.plotly_chart(style_court(fig), width="stretch")
 
-        half = SHOT_BIN_SIZE / 2
+        width, height = SHOT_COORD_SIZE or court_image().size
+        x_bins = np.arange(0, width, SHOT_BIN_SIZE)
+        y_bins = np.arange(0, height, SHOT_BIN_SIZE)
         z = s.groupby(["y_bin", "x_bin"]).agg(schoten=("doelpunt", "size"), goals=("doelpunt", "sum")).reset_index()
         z["pct"] = z["goals"] / z["schoten"] * 100
-        piv = z.pivot(index="y_bin", columns="x_bin", values="pct")
-        cnt = z.pivot(index="y_bin", columns="x_bin", values="schoten")
+        # Volledig raster: zonder lege zones zou plotly de aanwezige vakken uitrekken.
+        piv = z.pivot(index="y_bin", columns="x_bin", values="pct").reindex(index=y_bins, columns=x_bins)
+        cnt = z.pivot(index="y_bin", columns="x_bin", values="schoten").reindex(index=y_bins, columns=x_bins)
         labels_txt = [["" if pd.isna(v) else str(int(v)) for v in row] for row in cnt.values]
-        heat = go.Figure(go.Heatmap(z=piv.values, x=piv.columns + half, y=piv.index + half, zmin=0, zmax=100,
-                                    colorscale="RdYlGn", opacity=0.6, text=labels_txt, texttemplate="%{text}", hoverongaps=False,
+        half = SHOT_BIN_SIZE / 2
+        heat = go.Figure(go.Heatmap(z=piv.values, x=x_bins + half, y=y_bins + half, zmin=0, zmax=100,
+                                    colorscale="RdYlGn", opacity=0.6, text=labels_txt, texttemplate="%{text}",
+                                    hoverongaps=False, xgap=1, ygap=1,
                                     colorbar=dict(title="Score", ticksuffix="%")))
         heat.update_layout(title="Scoringspercentage per zone (cijfer = aantal schoten)")
         st.plotly_chart(style_court(heat), width="stretch")

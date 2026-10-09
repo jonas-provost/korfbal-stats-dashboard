@@ -25,6 +25,23 @@ export KORFBAL_DATA_DIR=/pad/naar/jouw/data
 
 De zijbalk toont of je demo-data of eigen data bekijkt.
 
+## Uitleg van de cijfers
+| Cijfer | Betekenis |
+|---|---|
+| **Schotpercentage** | doelpunten ÷ **alle** schoten: veldschoten, vrijworpen, penalty's en doorloopballen samen |
+| **Veldschot %** | doelpunten uit het spel ÷ schoten uit het spel. Vrijworpen, penalty's en doorloopballen tellen hier **niet** mee |
+| Vrijworp % / Penalty % / Doorloper % | doelpunten ÷ pogingen van dat type |
+| Kansen per aanval | gemiddeld aantal schoten per aanval (0 = aanval zonder kans) |
+| Aanvallen met doelpunt % | aandeel aanvallen dat in een doelpunt eindigde |
+| Aanvallen zonder kans % | aandeel aanvallen waarin geen schot kwam |
+| Aandeel teamgoals % | doelpunten van de speler ÷ alle doelpunten van het team (in de selectie) |
+| Doelsaldo / Winstpercentage | doelpunten voor min tegen / winsten ÷ wedstrijden |
+
+Voorbeeld van het verschil tussen schotpercentage en veldschot %: een speler schiet 10 keer, 6 keer uit het spel (2 raak) en 4 keer uit een vrijworp of penalty (3 raak). Schotpercentage = 5/10 = **50%**, veldschot % = 2/6 = **33%**. Vrijworpen en penalty's zijn vaak makkelijker, dus veldschot % zegt meer over hoe goed iemand uit het spel scoort.
+
+## Schotkaart
+De schoten staan op de afbeelding `app/assets/korfbal-veld.png`. De afmetingen van het veld in de coördinaten van de app (ca. 628 x 547) staan in `SHOT_COORD_SIZE` in `src/korfbal_stats/config.py`.
+
 ## Werking
 - Elk Excel-bestand = één wedstrijd. Een wedstrijd wordt herkend aan datum + tegenstander uit het tabblad `MatchInfo`; dubbele bestanden worden overgeslagen.
 - Het seizoen loopt van augustus tot en met juli (`src/korfbal_stats/config.py`).
