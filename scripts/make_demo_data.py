@@ -25,11 +25,21 @@ PLAYERS = {
 OPPONENTS = ["Demo Noord", "Demo Oost", "Demo Zuid", "Demo West",
              "Demo Centrum", "Demo Haven", "Demo Dorp", "Demo Stad"]
 BASKET = (275.0, 225.0)
+POST = (277.0, 246.0)  # paal op de veldafbeelding
 KINDS = ["veld", "vrijworp", "penalty", "doorloper"]
 KIND_P = [0.68, 0.10, 0.04, 0.18]
 BASE_P = {"vrijworp": 0.42, "penalty": 0.55, "doorloper": 0.50}
 LABEL = {"veld": "Schot (veld)", "vrijworp": "Vrijworp", "penalty": "Penalty", "doorloper": "Doorloper"}
 PREFIX = {"vrijworp": "vrijworp", "penalty": "penalty", "doorloper": "doorloper"}
+
+
+def keep_outside_post(x: float, y: float, radius: float = 72.0) -> tuple[float, float]:
+    """Schuif schoten die in de gele cirkel rond de paal vallen naar buiten (geen extra random-getallen)."""
+    dx, dy = x - POST[0], y - POST[1]
+    dist = hypot(dx, dy) or 1.0
+    if dist < radius:
+        return POST[0] + dx / dist * radius, POST[1] + dy / dist * radius
+    return x, y
 
 
 def simulate(rng: np.random.Generator, opponent: str, day: date) -> dict[str, pd.DataFrame]:
@@ -64,6 +74,7 @@ def simulate(rng: np.random.Generator, opponent: str, day: date) -> dict[str, pd
                 skill = PLAYERS[shooter][2] * own_strength
                 if kind == "veld":
                     x, y = float(rng.uniform(60, 490)), float(rng.uniform(110, 340))
+                    x, y = keep_outside_post(x, y)
                     p = float(np.clip((0.55 - hypot(x - BASKET[0], y - BASKET[1]) / 600) * skill, 0.05, 0.75))
                     hit = bool(rng.random() < p)
                     shots.append({"Speler": shooter, "Nummer": PLAYERS[shooter][0],

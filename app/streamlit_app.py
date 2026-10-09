@@ -11,7 +11,10 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
+from PIL import Image
+
 from korfbal_stats.analytics import match_features, player_totals
+from korfbal_stats.config import SHOT_BIN_SIZE, SHOT_COORD_SIZE
 from korfbal_stats.transform import build_all
 from korfbal_stats.validate import validate
 
@@ -194,27 +197,49 @@ with tab_pl:
                  hide_index=True, width="stretch")
 
 # ---------- Schotkaart ----------
+@st.cache_resource
+def court_image() -> Image.Image:
+    return Image.open(ROOT / "app" / "assets" / "korfbal-veld.png")
+
+
+def style_court(fig: go.Figure) -> go.Figure:
+    """Zet de veldafbeelding als achtergrond; assen in app-coördinaten (y wijst naar beneden)."""
+    img = court_image()
+    width, height = SHOT_COORD_SIZE or img.size
+    fig.update_xaxes(range=[0, width], visible=False, constrain="domain")
+    fig.update_yaxes(range=[height, 0], visible=False, scaleanchor="x", scaleratio=1)
+    fig.add_layout_image(source=img, xref="x", yref="y", x=0, y=0, sizex=width, sizey=height,
+                         xanchor="left", yanchor="top", sizing="stretch", layer="below")
+    fig.update_layout(height=620, margin=dict(l=0, r=0, t=40, b=0), plot_bgcolor="rgba(0,0,0,0)")
+    return fig
+
+
 with tab_shot:
-    all_players = sorted(shots["speler"].unique())
-    players = st.multiselect("Spelers", all_players, default=all_players)
+    # Speler met de meeste schoten staat bovenaan en is standaard geselecteerd.
+    by_shots = shots["speler"].value_counts()
+    options = list(by_shots.index)
+    players = st.multiselect("Spelers", options, default=options[:1],
+                             help="Standaard één speler; voeg er meer toe om te vergelijken.")
     s = shots[shots["speler"].isin(players)]
     if s.empty:
         st.info("Geen schotlocaties voor deze selectie.")
     else:
+        n_goals = int(s["doelpunt"].sum())
+        st.caption(f"{len(s)} veldschoten, {n_goals} doelpunten ({pct(n_goals / len(s))})")
         s = s.assign(Resultaat=s["doelpunt"].map({1: "Doelpunt", 0: "Gemist"}))
-        fig = px.scatter(s, x="x", y="y", color="Resultaat", symbol="speler",
-                         color_discrete_map={"Doelpunt": "#2e9d5b", "Gemist": "#d64545"})
-        fig.update_yaxes(autorange="reversed", scaleanchor="x")  # app-coördinaten: y wijst naar beneden
-        fig.update_traces(marker_size=11)
-        st.plotly_chart(fig, width="stretch")
+        fig = px.scatter(s, x="x", y="y", color="Resultaat",
+                         symbol="speler" if len(players) > 1 else None,
+                         color_discrete_map={"Doelpunt": "#1b5e20", "Gemist": "#c62828"})
+        fig.update_traces(marker=dict(size=13, line=dict(width=1.5, color="white")))
+        st.plotly_chart(style_court(fig), width="stretch")
 
+        half = SHOT_BIN_SIZE / 2
         z = s.groupby(["y_bin", "x_bin"]).agg(schoten=("doelpunt", "size"), goals=("doelpunt", "sum")).reset_index()
         z["pct"] = z["goals"] / z["schoten"] * 100
         piv = z.pivot(index="y_bin", columns="x_bin", values="pct")
         cnt = z.pivot(index="y_bin", columns="x_bin", values="schoten")
-        heat = go.Figure(go.Heatmap(z=piv.values, x=piv.columns, y=piv.index, zmin=0, zmax=100,
-                                    colorscale="RdYlGn", text=cnt.values, texttemplate="%{text}",
+        heat = go.Figure(go.Heatmap(z=piv.values, x=piv.columns + half, y=piv.index + half, zmin=0, zmax=100,
+                                    colorscale="RdYlGn", opacity=0.7, text=cnt.values, texttemplate="%{text}",
                                     colorbar=dict(title="Score", ticksuffix="%")))
-        heat.update_yaxes(autorange="reversed")
         heat.update_layout(title="Scoringspercentage per zone (cijfer = aantal schoten)")
-        st.plotly_chart(heat, width="stretch")
+        st.plotly_chart(style_court(heat), width="stretch")

@@ -9,9 +9,11 @@ De repo bevat enkel **fictieve demo-data** (`sample_data/`, gegenereerd door `sc
 pip install -r requirements.txt
 streamlit run app/streamlit_app.py
 ```
-Zonder eigen data zie je de demo. Met eigen data kies je één van twee opties:
+Zonder eigen data zie je de demo. Met eigen data:
 
-**A. Aparte map of private repo (aanbevolen)** — zet je `wedstrijd-data-*.xlsx` bestanden in een map buiten deze repo en geef die door:
+**Zet je `wedstrijd-data-*.xlsx` bestanden in `data/raw/`.** Excel-bestanden worden door `.gitignore` altijd genegeerd, dus ze belanden nooit per ongeluk op GitHub. Elke week een nieuwe wedstrijd = één bestand in `data/raw/` plaatsen en de pagina verversen.
+
+*Optioneel:* wil je de data elders bewaren (bijvoorbeeld een back-upmap of een aparte private repo), geef dan die map door:
 ```powershell
 # Windows PowerShell, eenmalig (geldt voor nieuwe terminals)
 setx KORFBAL_DATA_DIR "C:\pad\naar\jouw\data"
@@ -20,8 +22,6 @@ setx KORFBAL_DATA_DIR "C:\pad\naar\jouw\data"
 # macOS / Linux
 export KORFBAL_DATA_DIR=/pad/naar/jouw/data
 ```
-
-**B. `data/raw/`** — zet de bestanden in `data/raw/` van deze repo. Excel-bestanden worden door `.gitignore` altijd genegeerd, dus ze belanden niet per ongeluk op GitHub.
 
 De zijbalk toont of je demo-data of eigen data bekijkt.
 
@@ -34,6 +34,7 @@ De zijbalk toont of je demo-data of eigen data bekijkt.
 ## Structuur
 ```
 app/streamlit_app.py            het dashboard
+app/assets/korfbal-veld.png     achtergrond voor de schotkaart
 src/korfbal_stats/              inlezen, omzetten, berekeningen en controles
 sample_data/                    fictieve demo-exports
 scripts/make_demo_data.py       genereert de demo-data
